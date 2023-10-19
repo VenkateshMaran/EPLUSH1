@@ -1,0 +1,69 @@
+Driver instance needs to change
+currently we are using driver instance on all stepDefinitions class like below
+private WebDriver driver = DriverFactory.getDriver();
+
+Dependency Injection
+
+Currently we are using below line of in DriverFactory class
+
+private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>();
+
+	public static WebDriver initializeDriver(String browser)
+	{
+		//For parallel execution
+		WebDriver driver = null;
+	        switch (browser)
+	        {
+			case "firefox":
+				WebDriverManager.firefoxdriver().setup();
+				driver = new FirefoxDriver();
+				driver.manage().window().maximize();
+				driver.manage().deleteAllCookies();
+				break;
+			}
+
+	        DriverFactory.driver.set(driver);
+	        return driver;
+	}
+
+	public static WebDriver getDriver()
+	{
+		return driver.get();
+	}
+
+
+==========================================================
+So with the Dependency injection container, all of these can be avoided, we can avoid using
+static keyword for the variable, we can avoid using threadLocal and we don't really need that
+driver method. All of these will be taken care of of by the dependency injection container
+
+One of the famous DI container is PICO Container
+https://cucumber.io/blog/bdd/polymorphic-step-definitions/
+
+Steps 1:  First create constructor of myhooks for picocontainer
+
+Steps: Remove private static final ThreadLocal<WebDriver> driver = new ThreadLocal<>(); from DriverFactory class
+Steps: Remove  DriverFactory.driver.set(driver); from DriverFactory class
+Steps: Remove below method as well from DriverFactory class
+public static WebDriver getDriver()
+	{
+		return driver.get();
+	}
+
+
+
+	MyHooks class
+
+	Step 1: Create one variable: private TestContext context;
+	Step 2: Create constructor
+	public MyHooks(TestContext context)
+    	{
+    		this.context = context;
+    	}
+    Step 3: Add context.driver = driver; inside the before annotation method after
+     driver =  DriverFactory.initializeDriver("chrome");
+
+
+StepDefinitions Class
+Now go to the stepdeifinition class and remove driver instance
+    Step: private WebDriver driver = DriverFactory.getDriver();
